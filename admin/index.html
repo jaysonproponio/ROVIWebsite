@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ROVI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>ROVI Admin Panel</h1>
+        <nav class="admin-nav">
+            <a href="index.html" class="active">Dashboard</a>
+            <a href="products.html">Products</a>
+            <a href="orders.html" style="position: relative;">
+                Orders
+                <span class="order-badge" style="display: none; position: absolute; top: -5px; right: -10px;">0</span>
+            </a>
+            <a href="content.html">Content</a>
+            <a href="../user/index.html" target="_blank">View Site</a>
+            <div class="profile-container" style="margin-left: auto;">
+                <span class="username-display" id="username-display" style="display: none; color: white;"></span>
+                <i class="bi bi-person-circle profile-icon" id="profile-icon" onclick="toggleProfileDropdown()" style="display: none; color: white; font-size: 24px;"></i>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="#" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class="dashboard">
+        <h2 style="margin-bottom: 30px; font-family: var(--font-serif); font-size: 32px;">Dashboard Overview</h2>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>Total Revenue</h3>
+                <div class="value" id="total-revenue">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Orders</h3>
+                <div class="value" id="total-orders">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pending Orders</h3>
+                <div class="value" id="pending-orders">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Products</h3>
+                <div class="value" id="total-products">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Wishlist Items</h3>
+                <div class="value" id="wishlist-items">0</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
+            <div class="chart-container">
+                <h3>Sales Overview (Last 6 Months)</h3>
+                <canvas id="sales-chart"></canvas>
+            </div>
+
+            <div class="chart-container" style="margin: 0;">
+                <h3>Order Status Distribution</h3>
+                <canvas id="status-chart"></canvas>
+            </div>
+        </div>
+        <style>
+            @media (max-width: 1024px) {
+                .dashboard > div[style*="grid"] {
+                    grid-template-columns: 1fr !important;
+                }
+            }
+        </style>
+    </div>
+
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/profile.js"></script>
+    <script>
+        function loadDashboard() {
+            const analytics = getAnalytics();
+            
+            const wishlist = JSON.parse(localStorage.getItem('rovi_wishlist') || '[]');
+            
+            document.getElementById('total-revenue').textContent = `$${analytics.totalRevenue.toFixed(2)}`;
+            document.getElementById('total-orders').textContent = analytics.totalOrders;
+            document.getElementById('pending-orders').textContent = analytics.pendingOrders;
+            document.getElementById('total-products').textContent = analytics.totalProducts;
+            document.getElementById('wishlist-items').textContent = wishlist.length;
+
+            // Sales Chart
+            const salesCtx = document.getElementById('sales-chart').getContext('2d');
+            const salesLabels = Object.keys(analytics.salesByMonth);
+            const salesData = Object.values(analytics.salesByMonth);
+
+            new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: salesLabels,
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: salesData,
+                        borderColor: '#8B4513',
+                        backgroundColor: 'rgba(139, 69, 19, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Status Chart
+            const statusCtx = document.getElementById('status-chart').getContext('2d');
+            const orders = getOrders();
+            const statusCounts = {
+                pending: orders.filter(o => o.status === 'pending').length,
+                processing: orders.filter(o => o.status === 'processing').length,
+                processed: orders.filter(o => o.status === 'processed').length,
+                completed: orders.filter(o => o.status === 'completed').length,
+                cancelled: orders.filter(o => o.status === 'cancelled').length
+            };
+
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Processing', 'Processed', 'Completed', 'Cancelled'],
+                    datasets: [{
+                        data: [
+                            statusCounts.pending,
+                            statusCounts.processing,
+                            statusCounts.processed,
+                            statusCounts.completed,
+                            statusCounts.cancelled
+                        ],
+                        backgroundColor: [
+                            '#FFC107',
+                            '#17A2B8',
+                            '#2196F3',
+                            '#28A745',
+                            '#DC3545'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Check authentication - must be admin
+        if (!isAuthenticated()) {
+            window.location.href = '../user/login.html';
+        } else {
+            const user = getCurrentUser();
+            if (user.username.toLowerCase() !== 'admin') {
+                window.location.href = '../user/index.html';
+            }
+        }
+
+        // Load user profile
+        loadUserProfile();
+
+        // Mark active navigation (already handled by class="active" in HTML)
+        
+        loadDashboard();
+        if (typeof updateAllBadges === 'function') {
+            updateAllBadges();
+        }
+    </script>
+</body>
+</html>
+

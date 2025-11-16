@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Content - ROVI Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .admin-content {
+            padding: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .content-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        @media (max-width: 768px) {
+            .content-section > div[style*="grid"] {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        .content-section h3 {
+            font-family: var(--font-serif);
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .image-preview {
+            max-width: 300px;
+            max-height: 300px;
+            object-fit: contain;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--bg-light);
+        }
+        .brand-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .brand-input-group input {
+            flex: 1;
+        }
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--bg-light);
+            margin-top: 10px;
+        }
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(139, 69, 19, 0.05);
+        }
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(139, 69, 19, 0.1);
+        }
+        .upload-area input[type="file"] {
+            display: none;
+        }
+        .upload-icon {
+            font-size: 48px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+        .upload-text {
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+        .upload-hint {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        .image-preview-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .remove-image-btn {
+            margin-top: 10px;
+            padding: 5px 15px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-family: var(--font-serif);
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        .close-modal:hover {
+            color: var(--text-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>ROVI Admin Panel</h1>
+        <nav class="admin-nav">
+            <a href="index.html">Dashboard</a>
+            <a href="products.html">Products</a>
+            <a href="orders.html" style="position: relative;">
+                Orders
+                <span class="order-badge" style="display: none; position: absolute; top: -5px; right: -10px;">0</span>
+            </a>
+            <a href="content.html" class="active">Content</a>
+            <a href="../user/index.html" target="_blank">View Site</a>
+            <div class="profile-container" style="margin-left: auto;">
+                <span class="username-display" id="username-display" style="display: none; color: white;"></span>
+                <i class="bi bi-person-circle profile-icon" id="profile-icon" onclick="toggleProfileDropdown()" style="display: none; color: white; font-size: 24px;"></i>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="#" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class="admin-content">
+        <h2 style="font-family: var(--font-serif); font-size: 32px; margin-bottom: 30px;">Manage Website Content</h2>
+
+        <!-- Hero Section Content -->
+        <div class="content-section">
+            <h3>Hero Section</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label>Hero Image</label>
+                    <div class="upload-area" id="hero-upload-area" onclick="document.getElementById('hero-image-input').click()">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">Click to upload or drag and drop</div>
+                        <div class="upload-hint">PNG, JPG, GIF up to 10MB</div>
+                        <input type="file" id="hero-image-input" accept="image/*" onchange="handleHeroImageUpload(event)">
+                    </div>
+                    <div class="image-preview-container" id="hero-image-preview-container" style="display: none;">
+                        <img id="hero-image-preview" class="image-preview">
+                        <br>
+                        <button type="button" class="remove-image-btn" onclick="removeHeroImage()">Remove Image</button>
+                    </div>
+                    <input type="hidden" id="hero-image">
+                </div>
+                <div>
+                    <div class="form-group">
+                        <label>Hero Title</label>
+                        <input type="text" id="hero-title" placeholder="Enter hero title">
+                    </div>
+                    <div class="form-group">
+                        <label>Hero Description</label>
+                        <textarea id="hero-description" rows="3" placeholder="Enter hero description"></textarea>
+                    </div>
+                    <button class="btn-primary" onclick="saveHeroContent()">Save Hero Content</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Section Content -->
+        <div class="content-section">
+            <h3>About Section</h3>
+            <div class="form-group">
+                <label>About Text</label>
+                <textarea id="about-text" rows="5" placeholder="Enter about section text"></textarea>
+            </div>
+            <button class="btn-primary" onclick="saveAboutContent()">Save About Content</button>
+        </div>
+
+        <!-- Brand Showcase -->
+        <div class="content-section">
+            <h3>Brand Showcase</h3>
+            <div id="brands-container">
+                <!-- Brands will be loaded here -->
+            </div>
+            <button class="btn-secondary" onclick="addBrandInput()" style="margin-top: 10px;">Add Brand</button>
+            <button class="btn-primary" onclick="saveBrands()" style="margin-top: 10px; margin-left: 10px;">Save Brands</button>
+        </div>
+
+        <!-- Showcase Management -->
+        <div class="content-section">
+            <h3>Manage Showcase Items</h3>
+            <p style="color: var(--text-light); margin-bottom: 20px;">Manage lookbooks, runway shows, and behind-the-scenes content.</p>
+            <div id="showcase-items-list">
+                <!-- Showcase items will be loaded here -->
+            </div>
+            <button class="btn-primary" onclick="addShowcaseItem()" style="margin-top: 20px;">Add Showcase Item</button>
+        </div>
+
+        <!-- Comments Management -->
+        <div class="content-section">
+            <h3>Manage Product Comments</h3>
+            <p style="color: var(--text-light); margin-bottom: 20px;">View and manage customer reviews and comments.</p>
+            <div id="comments-list">
+                <!-- Comments will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Wishlist Management -->
+        <div class="content-section">
+            <h3>Wishlist Statistics</h3>
+            <p style="color: var(--text-light); margin-bottom: 20px;">View wishlist statistics and popular items.</p>
+            <div id="wishlist-stats">
+                <!-- Wishlist stats will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Designer Profiles Management -->
+        <div class="content-section">
+            <h3>Manage Designer Profiles</h3>
+            <p style="color: var(--text-light); margin-bottom: 20px;">Edit designer information, images, and achievements.</p>
+            <div id="designers-list">
+                <!-- Designers will be loaded here -->
+            </div>
+            <button class="btn-primary" onclick="openDesignerModal()" style="margin-top: 20px;">Add New Designer</button>
+        </div>
+
+    </div>
+
+    <!-- Designer Modal -->
+    <div id="designer-modal" class="modal">
+        <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3 id="designer-modal-title">Add New Designer</h3>
+                <button class="close-modal" onclick="closeDesignerModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+            </div>
+            <form id="designer-form">
+                <input type="hidden" id="designer-id">
+                <div class="form-group">
+                    <label>Designer Name</label>
+                    <input type="text" id="designer-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="designer-title" placeholder="e.g., Haute Couture Designer" required>
+                </div>
+                <div class="form-group">
+                    <label>Designer Image</label>
+                    <div class="upload-area" id="designer-upload-area" onclick="document.getElementById('designer-image-input').click()">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">Click to upload or drag and drop</div>
+                        <div class="upload-hint">PNG, JPG, GIF up to 10MB</div>
+                        <input type="file" id="designer-image-input" accept="image/*" onchange="handleDesignerImageUpload(event)">
+                    </div>
+                    <div class="image-preview-container" id="designer-image-preview-container" style="display: none;">
+                        <img id="designer-image-preview" class="image-preview">
+                        <br>
+                        <button type="button" class="remove-image-btn" onclick="removeDesignerImage()">Remove Image</button>
+                    </div>
+                    <input type="hidden" id="designer-image">
+                </div>
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea id="designer-bio" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Collections</label>
+                    <input type="text" id="designer-collections" placeholder="e.g., Evening Wear, Bridal, Formal Attire" required>
+                </div>
+                <div class="form-group">
+                    <label>Achievements (one per line)</label>
+                    <textarea id="designer-achievements" rows="6" placeholder="Enter each achievement on a new line"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-primary">Save Designer</button>
+                    <button type="button" class="btn-secondary" onclick="closeDesignerModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/profile.js"></script>
+    <script>
+        // Check authentication - must be admin
+        if (!isAuthenticated()) {
+            window.location.href = '../user/login.html';
+        } else {
+            const user = getCurrentUser();
+            if (user.username.toLowerCase() !== 'admin') {
+                window.location.href = '../user/index.html';
+            }
+        }
+
+        // Load user profile
+        loadUserProfile();
+
+        function loadContent() {
+            const content = getContent();
+
+            if (content.heroImage) {
+                document.getElementById('hero-image').value = content.heroImage;
+                updateHeroImagePreview(content.heroImage);
+            }
+            if (content.heroTitle) {
+                document.getElementById('hero-title').value = content.heroTitle;
+            }
+            if (content.heroDescription) {
+                document.getElementById('hero-description').value = content.heroDescription;
+            }
+            if (content.aboutText) {
+                document.getElementById('about-text').value = content.aboutText;
+            }
+
+            loadBrands(content.brands || []);
+        }
+
+        function loadBrands(brands) {
+            const container = document.getElementById('brands-container');
+            if (brands.length === 0) {
+                brands = ['LOUIS VUITTON', 'GUCCI', 'RALPH LAUREN', 'CHANEL'];
+            }
+            container.innerHTML = brands.map((brand, index) => `
+                <div class="brand-input-group">
+                    <input type="text" class="brand-input" value="${brand}" placeholder="Brand name">
+                    <button class="btn-danger" onclick="removeBrand(this)" style="padding: 10px 15px;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function addBrandInput() {
+            const container = document.getElementById('brands-container');
+            const div = document.createElement('div');
+            div.className = 'brand-input-group';
+            div.innerHTML = `
+                <input type="text" class="brand-input" placeholder="Brand name">
+                <button class="btn-danger" onclick="removeBrand(this)" style="padding: 10px 15px;">Remove</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeBrand(button) {
+            button.parentElement.remove();
+        }
+
+        function saveHeroContent() {
+            const heroImage = document.getElementById('hero-image').value;
+            const heroTitle = document.getElementById('hero-title').value;
+            const heroDescription = document.getElementById('hero-description').value;
+
+            if (!heroImage) {
+                showModal('Error', 'Please upload a hero image', 'error');
+                return;
+            }
+
+            updateContent({
+                heroImage,
+                heroTitle,
+                heroDescription
+            });
+
+            showModal('Success', 'Hero content saved successfully!', 'success');
+        }
+
+        function saveAboutContent() {
+            const aboutText = document.getElementById('about-text').value;
+            updateContent({ aboutText });
+            showModal('Success', 'About content saved successfully!', 'success');
+        }
+
+        function saveBrands() {
+            const brandInputs = document.querySelectorAll('.brand-input');
+            const brands = Array.from(brandInputs)
+                .map(input => input.value.trim())
+                .filter(brand => brand.length > 0);
+
+            if (brands.length === 0) {
+                showModal('Error', 'Please add at least one brand.', 'error');
+                return;
+            }
+
+            updateContent({ brands });
+            showModal('Success', 'Brands saved successfully!', 'success');
+        }
+
+        function handleHeroImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showModal('Error', 'File size must be less than 10MB', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    document.getElementById('hero-image').value = base64Image;
+                    updateHeroImagePreview(base64Image);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateHeroImagePreview(url) {
+            const preview = document.getElementById('hero-image-preview');
+            const container = document.getElementById('hero-image-preview-container');
+            if (url && preview) {
+                preview.src = url;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function removeHeroImage() {
+            document.getElementById('hero-image').value = '';
+            document.getElementById('hero-image-input').value = '';
+            document.getElementById('hero-image-preview-container').style.display = 'none';
+        }
+
+        // Drag and drop for hero image
+        const heroUploadArea = document.getElementById('hero-upload-area');
+        
+        heroUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            heroUploadArea.classList.add('dragover');
+        });
+
+        heroUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            heroUploadArea.classList.remove('dragover');
+        });
+
+        heroUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            heroUploadArea.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showModal('Error', 'File size must be less than 10MB', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    document.getElementById('hero-image').value = base64Image;
+                    updateHeroImagePreview(base64Image);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showModal('Error', 'Please drop an image file', 'error');
+            }
+        });
+
+        function loadShowcaseItems() {
+            // Load showcase items from localStorage or use default
+            const showcaseItems = JSON.parse(localStorage.getItem('rovi_showcase') || '[]');
+            const list = document.getElementById('showcase-items-list');
+            
+            if (showcaseItems.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-light);">No showcase items yet. Add your first item!</p>';
+            } else {
+                list.innerHTML = showcaseItems.map((item, index) => `
+                    <div style="padding: 15px; background: var(--bg-light); border-radius: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${item.title}</strong> - ${item.type}
+                        </div>
+                        <button class="btn-danger" onclick="deleteShowcaseItem(${index})" style="padding: 5px 15px;">Delete</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function addShowcaseItem() {
+            const title = prompt('Enter showcase item title:');
+            if (!title) return;
+            
+            const type = prompt('Enter type (lookbook/runway/behind-scenes):');
+            if (!type) return;
+            
+            const description = prompt('Enter description:') || '';
+            
+            // Create a temporary file input for image upload
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 10 * 1024 * 1024) {
+                        showModal('Error', 'File size must be less than 10MB', 'error');
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const base64Image = e.target.result;
+                        const showcaseItems = JSON.parse(localStorage.getItem('rovi_showcase') || '[]');
+                        showcaseItems.push({ title, type, image: base64Image, description });
+                        localStorage.setItem('rovi_showcase', JSON.stringify(showcaseItems));
+                        loadShowcaseItems();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        }
+
+        function deleteShowcaseItem(index) {
+            showModal('Confirm', 'Delete this showcase item?', 'warning', `deleteShowcaseItemConfirm(${index})`);
+        }
+
+        function deleteShowcaseItemConfirm(index) {
+            const showcaseItems = JSON.parse(localStorage.getItem('rovi_showcase') || '[]');
+            showcaseItems.splice(index, 1);
+            localStorage.setItem('rovi_showcase', JSON.stringify(showcaseItems));
+            loadShowcaseItems();
+        }
+
+        function loadComments() {
+            const products = getProducts();
+            const commentsList = document.getElementById('comments-list');
+            let allComments = [];
+            
+            products.forEach(product => {
+                const comments = JSON.parse(localStorage.getItem(`rovi_comments_${product.id}`) || '[]');
+                comments.forEach(comment => {
+                    allComments.push({
+                        ...comment,
+                        productId: product.id,
+                        productName: product.name
+                    });
+                });
+            });
+            
+            if (allComments.length === 0) {
+                commentsList.innerHTML = '<p style="color: var(--text-light);">No comments yet.</p>';
+            } else {
+                commentsList.innerHTML = allComments.map(comment => `
+                    <div style="padding: 15px; background: var(--bg-light); border-radius: 5px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <strong>${comment.name}</strong> on <strong>${comment.productName}</strong>
+                            <span style="font-size: 12px; color: var(--text-light);">${comment.date}</span>
+                        </div>
+                        <p style="color: var(--text-dark);">${comment.text}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function loadWishlistStats() {
+            const wishlist = JSON.parse(localStorage.getItem('rovi_wishlist') || '[]');
+            const products = getProducts();
+            const statsDiv = document.getElementById('wishlist-stats');
+            
+            if (wishlist.length === 0) {
+                statsDiv.innerHTML = '<p style="color: var(--text-light);">No items in wishlists yet.</p>';
+            } else {
+                // Count wishlist items per product
+                const productCounts = {};
+                wishlist.forEach(productId => {
+                    productCounts[productId] = (productCounts[productId] || 0) + 1;
+                });
+                
+                // Get product details
+                const popularItems = Object.entries(productCounts)
+                    .map(([productId, count]) => {
+                        const product = products.find(p => p.id === parseInt(productId));
+                        return { product, count };
+                    })
+                    .filter(item => item.product)
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 10);
+                
+                statsDiv.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <strong>Total Wishlist Items:</strong> ${wishlist.length}
+                    </div>
+                    <h4 style="margin-bottom: 15px;">Most Wishlisted Products:</h4>
+                    ${popularItems.map(item => `
+                        <div style="padding: 15px; background: var(--bg-light); border-radius: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${item.product.name}</strong> - ${item.count} time(s) in wishlists
+                            </div>
+                            <div style="color: var(--text-light);">$${item.product.price.toFixed(2)}</div>
+                        </div>
+                    `).join('')}
+                `;
+            }
+        }
+
+        // Designer Management
+        let editingDesignerId = null;
+
+        function loadDesigners() {
+            const designers = getDesigners();
+            const list = document.getElementById('designers-list');
+            
+            const designerArray = Object.entries(designers).map(([id, designer]) => ({ id: parseInt(id), ...designer }));
+            
+            if (designerArray.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-light);">No designers yet. Add your first designer!</p>';
+            } else {
+                list.innerHTML = designerArray.map(designer => `
+                    <div style="padding: 20px; background: var(--bg-light); border-radius: 5px; margin-bottom: 15px; display: grid; grid-template-columns: 100px 1fr auto; gap: 20px; align-items: center;">
+                        <img src="${designer.image}" alt="${designer.name}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;">
+                        <div>
+                            <h4 style="margin-bottom: 5px;">${designer.name}</h4>
+                            <p style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">${designer.title}</p>
+                            <p style="color: var(--text-light); font-size: 12px;">${designer.bio.substring(0, 100)}...</p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-secondary" onclick="editDesigner(${designer.id})" style="padding: 5px 15px;">Edit</button>
+                            <button class="btn-danger" onclick="deleteDesignerHandler(${designer.id})" style="padding: 5px 15px;">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function openDesignerModal() {
+            editingDesignerId = null;
+            document.getElementById('designer-modal-title').textContent = 'Add New Designer';
+            document.getElementById('designer-form').reset();
+            document.getElementById('designer-id').value = '';
+            document.getElementById('designer-image').value = '';
+            document.getElementById('designer-image-preview-container').style.display = 'none';
+            document.getElementById('designer-modal').classList.add('active');
+        }
+
+        function editDesigner(id) {
+            const designer = getDesignerById(id);
+            if (designer) {
+                editingDesignerId = id;
+                document.getElementById('designer-modal-title').textContent = 'Edit Designer';
+                document.getElementById('designer-id').value = id;
+                document.getElementById('designer-name').value = designer.name;
+                document.getElementById('designer-title').value = designer.title;
+                document.getElementById('designer-image').value = designer.image;
+                document.getElementById('designer-bio').value = designer.bio;
+                document.getElementById('designer-collections').value = designer.collections;
+                document.getElementById('designer-achievements').value = designer.achievements ? designer.achievements.join('\n') : '';
+                updateDesignerImagePreview(designer.image);
+                document.getElementById('designer-modal').classList.add('active');
+            }
+        }
+
+        function deleteDesignerHandler(id) {
+            showModal('Confirm', 'Are you sure you want to delete this designer?', 'warning', `deleteDesignerConfirm(${id})`);
+        }
+
+        function deleteDesignerConfirm(id) {
+            deleteDesigner(id);
+            loadDesigners();
+        }
+
+        function closeDesignerModal() {
+            document.getElementById('designer-modal').classList.remove('active');
+        }
+
+        function handleDesignerImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showModal('Error', 'File size must be less than 10MB', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    document.getElementById('designer-image').value = base64Image;
+                    updateDesignerImagePreview(base64Image);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateDesignerImagePreview(url) {
+            const preview = document.getElementById('designer-image-preview');
+            const container = document.getElementById('designer-image-preview-container');
+            if (url && preview) {
+                preview.src = url;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function removeDesignerImage() {
+            document.getElementById('designer-image').value = '';
+            document.getElementById('designer-image-input').value = '';
+            document.getElementById('designer-image-preview-container').style.display = 'none';
+        }
+
+        // Drag and drop for designer image
+        const designerUploadArea = document.getElementById('designer-upload-area');
+        
+        designerUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            designerUploadArea.classList.add('dragover');
+        });
+
+        designerUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            designerUploadArea.classList.remove('dragover');
+        });
+
+        designerUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            designerUploadArea.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showModal('Error', 'File size must be less than 10MB', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    document.getElementById('designer-image').value = base64Image;
+                    updateDesignerImagePreview(base64Image);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showModal('Error', 'Please drop an image file', 'error');
+            }
+        });
+
+        document.getElementById('designer-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const imageValue = document.getElementById('designer-image').value;
+            if (!imageValue) {
+                showModal('Error', 'Please upload a designer image', 'error');
+                return;
+            }
+
+            const achievementsText = document.getElementById('designer-achievements').value;
+            const achievements = achievementsText.split('\n').filter(a => a.trim().length > 0);
+
+            const designerData = {
+                name: document.getElementById('designer-name').value,
+                title: document.getElementById('designer-title').value,
+                image: imageValue,
+                bio: document.getElementById('designer-bio').value,
+                collections: document.getElementById('designer-collections').value,
+                achievements: achievements
+            };
+
+            if (editingDesignerId) {
+                updateDesigner(editingDesignerId, designerData);
+            } else {
+                addDesigner(designerData);
+            }
+
+            closeDesignerModal();
+            loadDesigners();
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('designer-modal');
+            if (event.target === modal) {
+                closeDesignerModal();
+            }
+        }
+
+        // Mark active navigation (already handled by class="active" in HTML)
+        
+        loadContent();
+        loadShowcaseItems();
+        loadComments();
+        loadWishlistStats();
+        loadDesigners();
+        if (typeof updateAllBadges === 'function') {
+            updateAllBadges();
+        }
+    </script>
+</body>
+</html>
+

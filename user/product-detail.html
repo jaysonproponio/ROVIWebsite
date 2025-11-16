@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail - ROVI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .product-detail {
+            padding: 80px 50px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+        }
+        .product-image-container {
+            position: relative;
+            cursor: zoom-in;
+        }
+        .product-image-large {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+        .product-image-container:hover .product-image-large {
+            transform: scale(1.05);
+        }
+        .image-hover-buttons {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .product-image-container:hover .image-hover-buttons {
+            opacity: 1;
+        }
+        .image-hover-buttons.left {
+            left: 20px;
+        }
+        .image-hover-buttons.right {
+            right: 20px;
+        }
+        .hover-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            color: var(--text-dark);
+        }
+        .hover-btn i {
+            font-size: 20px;
+        }
+        .hover-btn:hover {
+            background: white;
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+        .heart-btn.filled {
+            color: #e74c3c;
+        }
+        .product-detail-info h1 {
+            font-family: var(--font-serif);
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+        .product-price-large {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+        .product-description {
+            margin-bottom: 30px;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+        .product-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+        .sharing-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 10px;
+        }
+        .sharing-section h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .share-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: var(--text-dark);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .share-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .comments-section {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 2px solid var(--border-color);
+        }
+        .comments-section h3 {
+            font-family: var(--font-serif);
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+        .comment-form {
+            margin-bottom: 40px;
+        }
+        .comment-item {
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .comment-author {
+            font-weight: 600;
+        }
+        .comment-date {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        .comment-text {
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+        .zoom-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            cursor: zoom-out;
+        }
+        .zoom-overlay.active {
+            display: flex;
+        }
+        .zoomed-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        .size-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .size-modal.active {
+            display: flex;
+        }
+        .size-modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+        .size-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .size-modal-header h3 {
+            font-family: var(--font-serif);
+            font-size: 24px;
+        }
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        .size-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .size-option {
+            padding: 12px 20px;
+            border: 2px solid var(--border-color);
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        .size-option:hover {
+            border-color: var(--primary-color);
+        }
+        .size-option.selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .size-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">ROVI</a>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="products.html">Products</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="wishlist.html" class="wishlist-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); font-size: 24px; position: relative;" title="Wishlist">
+                <i class="bi bi-heart"></i>
+                <span class="wishlist-badge" style="display: none;">0</span>
+            </a>
+            <a href="order.html" class="order-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); font-size: 24px; position: relative;" title="My Orders">
+                <i class="bi bi-box-seam"></i>
+                <span class="order-badge" style="display: none;">0</span>
+            </a>
+            <a href="cart.html" class="cart-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); position: relative;">
+                <i class="bi bi-cart3" style="font-size: 24px;"></i>
+                <span class="cart-badge" style="display: none;">0</span>
+            </a>
+            <div class="profile-container">
+                <span class="username-display" id="username-display" style="display: none;"></span>
+                <i class="bi bi-person-circle profile-icon" id="profile-icon" onclick="toggleProfileDropdown()" style="display: none;"></i>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="profile.html"><i class="bi bi-person"></i> Profile</a>
+                    <a href="settings.html"><i class="bi bi-gear"></i> Settings</a>
+                    <a href="#" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="product-detail" id="product-detail">
+        <!-- Product details will be loaded here -->
+    </section>
+
+    <div class="zoom-overlay" id="zoom-overlay">
+        <img id="zoomed-image" class="zoomed-image" src="" alt="">
+    </div>
+
+    <!-- Size Selection Modal -->
+    <div class="size-modal" id="size-modal">
+        <div class="size-modal-content">
+            <div class="size-modal-header">
+                <h3>Select Size</h3>
+                <button class="close-modal-btn" onclick="closeSizeModal()">&times;</button>
+            </div>
+            <div id="size-selection-content">
+                <!-- Size options will be loaded here -->
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-primary" onclick="confirmAddToCart()" style="flex: 1;">Add to Cart</button>
+                <button class="btn-secondary" onclick="closeSizeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>ROVI</h3>
+                <p>Discover and find your own fashion.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Customer Service</h3>
+                <ul>
+                    <li><a href="#">Shipping Info</a></li>
+                    <li><a href="returns.html">Returns</a></li>
+                    <li><a href="size-guide.html">Size Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Connect</h3>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/nicolayyyy7?mibextid=wwXIfr&rdid=n6lrNaAcNKG6m61O&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F17SYWDGV7U%2F%3Fmibextid%3DwwXIfr#" target="_blank" class="social-icon" title="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="https://www.instagram.com/mapinogosnicole?igsh=aTNhcWoxcXA3Mzhu&utm_source=qr" target="_blank" class="social-icon" title="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="https://x.com" target="_blank" class="social-icon" title="Twitter"><i class="bi bi-twitter"></i></a>
+                    <a href="https://linkedin.com" target="_blank" class="social-icon" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 ROVI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/profile.js"></script>
+    <script>
+        // Load user profile
+        loadUserProfile();
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        let isWishlisted = false;
+        let isFavorited = false;
+        
+        // Initialize wishlist and favorites from localStorage
+        if (!localStorage.getItem('rovi_wishlist')) {
+            localStorage.setItem('rovi_wishlist', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('rovi_favorites')) {
+            localStorage.setItem('rovi_favorites', JSON.stringify([]));
+        }
+        
+        if (productId) {
+            const product = getProductById(productId);
+            
+            if (product) {
+                // Check if product is in wishlist/favorites
+                const wishlist = JSON.parse(localStorage.getItem('rovi_wishlist') || '[]');
+                const favorites = JSON.parse(localStorage.getItem('rovi_favorites') || '[]');
+                isWishlisted = wishlist.includes(parseInt(productId));
+                isFavorited = favorites.includes(parseInt(productId));
+                
+                const productDetail = document.getElementById('product-detail');
+                // Escape image URL for base64 or regular URLs
+                const imageSrc = product.image || '../photos/hero.jpg';
+                productDetail.innerHTML = `
+                    <div class="product-image-container" onclick="zoomImage('${imageSrc.replace(/'/g, "\\'")}')">
+                        <img src="${imageSrc}" alt="${product.name}" class="product-image-large" onerror="this.src='../photos/hero.jpg'">
+                        <div class="image-hover-buttons left">
+                            <button class="hover-btn" onclick="toggleWishlist(event)" title="Add to Wishlist">
+                                <i class="bi bi-bookmark"></i>
+                            </button>
+                        </div>
+                        <div class="image-hover-buttons right">
+                            <button class="hover-btn heart-btn ${isFavorited ? 'filled' : ''}" onclick="toggleFavorite(event)" title="Favorite">
+                                <i class="bi ${isFavorited ? 'bi-heart-fill' : 'bi-heart'}"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="product-detail-info">
+                        <h1>${product.name}</h1>
+                        <div class="product-price-large">$${product.price.toFixed(2)}</div>
+                        <div class="product-description">
+                            <p>${product.description || 'A beautiful fashion piece from our collection.'}</p>
+                            <p><strong>Category:</strong> ${product.category}</p>
+                            <p><strong>Availability:</strong> ${product.inStock ? 'In Stock' : 'Out of Stock'}</p>
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn-primary" onclick="openSizeModal()">Add to Cart</button>
+                            <button class="btn-secondary" onclick="window.location.href='products.html'">Continue Shopping</button>
+                        </div>
+                        <div class="sharing-section">
+                            <h3>Share this product</h3>
+                            <div class="share-buttons">
+                                <a href="#" class="share-btn" onclick="shareProduct('facebook', event)"><i class="bi bi-facebook"></i> Facebook</a>
+                                <a href="#" class="share-btn" onclick="shareProduct('twitter', event)"><i class="bi bi-twitter"></i> Twitter</a>
+                                <a href="#" class="share-btn" onclick="shareProduct('whatsapp', event)"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+                                <a href="#" class="share-btn" onclick="copyLink(event)"><i class="bi bi-link-45deg"></i> Copy Link</a>
+                            </div>
+                        </div>
+                        <div class="comments-section">
+                            <h3>Customer Reviews</h3>
+                            <div class="comment-form">
+                                <div class="form-group">
+                                    <label>Your Name</label>
+                                    <input type="text" id="comment-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Your Review</label>
+                                    <textarea id="comment-text" rows="4" required></textarea>
+                                </div>
+                                <button class="btn-primary" onclick="addComment()">Submit Review</button>
+                            </div>
+                            <div id="comments-list">
+                                <!-- Comments will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                loadComments();
+            } else {
+                document.getElementById('product-detail').innerHTML = '<p>Product not found.</p>';
+            }
+        }
+
+        let selectedSize = null;
+        let sizeType = 'standard'; // 'standard' for S/M/L/XL or 'numeric' for shoe sizes
+
+        function openSizeModal() {
+            const product = getProductById(productId);
+            const modal = document.getElementById('size-modal');
+            const content = document.getElementById('size-selection-content');
+            
+            // Determine size type based on category
+            if (product.category === 'Accessories' || product.name.toLowerCase().includes('shoe') || product.name.toLowerCase().includes('boot')) {
+                sizeType = 'numeric';
+                content.innerHTML = `
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600;">Enter Size (e.g., 7, 8, 9, 10):</label>
+                    <input type="number" id="size-input" class="size-input" placeholder="Enter size number" min="1" max="20" step="0.5">
+                `;
+            } else {
+                sizeType = 'standard';
+                content.innerHTML = `
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600;">Select Size:</label>
+                    <div class="size-options">
+                        <div class="size-option" onclick="selectSize('S')">S</div>
+                        <div class="size-option" onclick="selectSize('M')">M</div>
+                        <div class="size-option" onclick="selectSize('L')">L</div>
+                        <div class="size-option" onclick="selectSize('XL')">XL</div>
+                    </div>
+                `;
+            }
+            
+            selectedSize = null;
+            modal.classList.add('active');
+        }
+
+        function closeSizeModal() {
+            document.getElementById('size-modal').classList.remove('active');
+            selectedSize = null;
+        }
+
+        function selectSize(size) {
+            selectedSize = size;
+            document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function confirmAddToCart() {
+            if (sizeType === 'numeric') {
+                const sizeInput = document.getElementById('size-input');
+                if (!sizeInput.value) {
+                    showModal('Required', 'Please enter a size', 'warning');
+                    return;
+                }
+                selectedSize = sizeInput.value;
+            }
+            
+            if (!selectedSize) {
+                showModal('Required', 'Please select a size', 'warning');
+                return;
+            }
+            
+            // Add to cart with size information
+            const cart = getCart();
+            const product = getProductById(productId);
+            
+            // Check if product with same size already exists
+            const existingItem = cart.find(item => 
+                item.productId === parseInt(productId) && item.size === selectedSize
+            );
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    productId: parseInt(productId),
+                    quantity: 1,
+                    size: selectedSize,
+                    product: product
+                });
+            }
+            
+            saveCart(cart);
+            updateAllBadges();
+            closeSizeModal();
+            showModal('Success', `Product added to cart! Size: ${selectedSize}`, 'success');
+        }
+
+        function toggleWishlist(e) {
+            e.stopPropagation();
+            const wishlist = JSON.parse(localStorage.getItem('rovi_wishlist') || '[]');
+            const id = parseInt(productId);
+            
+            if (wishlist.includes(id)) {
+                wishlist.splice(wishlist.indexOf(id), 1);
+                showModal('Success', 'Removed from wishlist', 'success');
+            } else {
+                wishlist.push(id);
+                showModal('Success', 'Added to wishlist!', 'success');
+            }
+            
+            localStorage.setItem('rovi_wishlist', JSON.stringify(wishlist));
+            updateAllBadges();
+        }
+
+        function toggleFavorite(e) {
+            e.stopPropagation();
+            const favorites = JSON.parse(localStorage.getItem('rovi_favorites') || '[]');
+            const id = parseInt(productId);
+            const btn = e.target.closest('.heart-btn');
+            
+            if (favorites.includes(id)) {
+                favorites.splice(favorites.indexOf(id), 1);
+                btn.classList.remove('filled');
+                btn.innerHTML = '<i class="bi bi-heart"></i>';
+            } else {
+                favorites.push(id);
+                btn.classList.add('filled');
+                btn.innerHTML = '<i class="bi bi-heart-fill"></i>';
+            }
+            
+            localStorage.setItem('rovi_favorites', JSON.stringify(favorites));
+        }
+
+        function shareProduct(platform, e) {
+            e.preventDefault();
+            const url = window.location.href;
+            const product = getProductById(productId);
+            const text = `Check out ${product.name} on ROVI!`;
+            
+            let shareUrl = '';
+            switch(platform) {
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+                    break;
+                case 'twitter':
+                    shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                    break;
+                case 'whatsapp':
+                    shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+                    break;
+            }
+            
+            if (shareUrl) {
+                window.open(shareUrl, '_blank', 'width=600,height=400');
+            }
+        }
+
+        function copyLink(e) {
+            e.preventDefault();
+            navigator.clipboard.writeText(window.location.href);
+            showModal('Success', 'Link copied to clipboard!', 'success');
+        }
+
+        function zoomImage(imageSrc) {
+            const overlay = document.getElementById('zoom-overlay');
+            const img = document.getElementById('zoomed-image');
+            img.src = imageSrc;
+            overlay.classList.add('active');
+        }
+
+        document.getElementById('zoom-overlay').addEventListener('click', function() {
+            this.classList.remove('active');
+        });
+
+        function addComment() {
+            const name = document.getElementById('comment-name').value;
+            const text = document.getElementById('comment-text').value;
+            
+            if (!name || !text) {
+                showModal('Required', 'Please fill in all fields', 'warning');
+                return;
+            }
+            
+            const comments = JSON.parse(localStorage.getItem(`rovi_comments_${productId}`) || '[]');
+            comments.push({
+                id: comments.length + 1,
+                name: name,
+                text: text,
+                date: new Date().toLocaleDateString()
+            });
+            
+            localStorage.setItem(`rovi_comments_${productId}`, JSON.stringify(comments));
+            document.getElementById('comment-name').value = '';
+            document.getElementById('comment-text').value = '';
+            loadComments();
+        }
+
+        function loadComments() {
+            const comments = JSON.parse(localStorage.getItem(`rovi_comments_${productId}`) || '[]');
+            const commentsList = document.getElementById('comments-list');
+            
+            if (comments.length === 0) {
+                commentsList.innerHTML = '<p style="color: var(--text-light);">No reviews yet. Be the first to review!</p>';
+            } else {
+                commentsList.innerHTML = comments.map(comment => `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">${comment.name}</span>
+                            <span class="comment-date">${comment.date}</span>
+                        </div>
+                        <div class="comment-text">${comment.text}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Mark active navigation
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        document.querySelectorAll('nav ul li a').forEach(link => {
+            const linkPage = link.getAttribute('href');
+            if (linkPage === currentPage || (currentPage === '' && linkPage === 'index.html')) {
+                link.classList.add('active');
+            }
+        });
+
+        updateAllBadges();
+    </script>
+</body>
+</html>

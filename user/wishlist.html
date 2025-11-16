@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist - ROVI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .wishlist-section {
+            padding: 80px 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .wishlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .wishlist-item {
+            position: relative;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .wishlist-item:hover {
+            transform: translateY(-5px);
+        }
+        .wishlist-item-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+        .wishlist-item-info {
+            padding: 20px;
+        }
+        .wishlist-item-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .remove-wishlist-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #e74c3c;
+            transition: all 0.3s;
+        }
+        .remove-wishlist-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+        .empty-wishlist {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        .empty-wishlist h2 {
+            font-family: var(--font-serif);
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">ROVI</a>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="products.html">Products</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="wishlist.html" class="wishlist-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); font-size: 24px; position: relative;" title="Wishlist">
+                <i class="bi bi-heart"></i>
+                <span class="wishlist-badge" style="display: none;">0</span>
+            </a>
+            <a href="order.html" class="order-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); font-size: 24px; position: relative;" title="My Orders">
+                <i class="bi bi-box-seam"></i>
+                <span class="order-badge" style="display: none;">0</span>
+            </a>
+            <a href="cart.html" class="cart-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); position: relative;">
+                <i class="bi bi-cart3" style="font-size: 24px;"></i>
+                <span class="cart-badge" style="display: none;">0</span>
+            </a>
+            <div class="profile-container">
+                <span class="username-display" id="username-display" style="display: none;"></span>
+                <i class="bi bi-person-circle profile-icon" id="profile-icon" onclick="toggleProfileDropdown()" style="display: none;"></i>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="profile.html"><i class="bi bi-person"></i> Profile</a>
+                    <a href="settings.html"><i class="bi bi-gear"></i> Settings</a>
+                    <a href="#" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="wishlist-section">
+        <h2 class="section-title">My Wishlist</h2>
+        <div class="wishlist-grid" id="wishlist-grid">
+            <!-- Wishlist items will be loaded here -->
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>ROVI</h3>
+                <p>Discover and find your own fashion. We bring you the finest collections from top designers around the world.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Customer Service</h3>
+                <ul>
+                    <li><a href="returns.html">Returns</a></li>
+                    <li><a href="size-guide.html">Size Guide</a></li>
+                    <li><a href="#">Shipping Info</a></li>
+                    <li><a href="faq.html">FAQs</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Connect</h3>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/nicolayyyy7?mibextid=wwXIfr&rdid=n6lrNaAcNKG6m61O&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F17SYWDGV7U%2F%3Fmibextid%3DwwXIfr#" target="_blank" class="social-icon" title="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="https://www.instagram.com/mapinogosnicole?igsh=aTNhcWoxcXA3Mzhu&utm_source=qr" target="_blank" class="social-icon" title="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="https://x.com" target="_blank" class="social-icon" title="Twitter"><i class="bi bi-twitter"></i></a>
+                    <a href="https://linkedin.com" target="_blank" class="social-icon" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 ROVI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/profile.js"></script>
+    <script>
+        // Load user profile
+        loadUserProfile();
+        function loadWishlist() {
+            const wishlist = JSON.parse(localStorage.getItem('rovi_wishlist') || '[]');
+            const products = getProducts();
+            const wishlistGrid = document.getElementById('wishlist-grid');
+            
+            if (wishlist.length === 0) {
+                wishlistGrid.innerHTML = `
+                    <div class="empty-wishlist" style="grid-column: 1 / -1;">
+                        <h2>Your wishlist is empty</h2>
+                        <p>Start adding items to your wishlist to save them for later.</p>
+                        <a href="products.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">Browse Products</a>
+                    </div>
+                `;
+            } else {
+                const wishlistProducts = products.filter(p => wishlist.includes(p.id));
+                wishlistGrid.innerHTML = wishlistProducts.map(product => {
+                    const imageSrc = product.image || '../photos/hero.jpg';
+                    return `
+                    <div class="wishlist-item">
+                        <button class="remove-wishlist-btn" onclick="removeFromWishlist(${product.id})" title="Remove from wishlist">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <img src="${imageSrc}" alt="${product.name}" class="wishlist-item-image" onclick="window.location.href='product-detail.html?id=${product.id}'" style="cursor: pointer;" onerror="this.src='../photos/hero.jpg'">
+                        <div class="wishlist-item-info">
+                            <h3 class="product-name" style="cursor: pointer;" onclick="window.location.href='product-detail.html?id=${product.id}'">${product.name}</h3>
+                            <div class="product-price">$${product.price.toFixed(2)}</div>
+                            <div class="wishlist-item-actions">
+                                <button class="btn-primary" onclick="addToCartFromWishlist(${product.id})" style="flex: 1;">Add to Cart</button>
+                                <button class="btn-secondary" onclick="window.location.href='product-detail.html?id=${product.id}'">View</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+            }
+        }
+
+        function removeFromWishlist(productId) {
+            if (confirm('Remove this item from wishlist?')) {
+                const wishlist = JSON.parse(localStorage.getItem('rovi_wishlist') || '[]');
+                const index = wishlist.indexOf(productId);
+                if (index > -1) {
+                    wishlist.splice(index, 1);
+                    localStorage.setItem('rovi_wishlist', JSON.stringify(wishlist));
+                    loadWishlist();
+                    updateAllBadges();
+                }
+            }
+        }
+
+        function addToCartFromWishlist(productId) {
+            if (addToCart(productId, 1)) {
+                showModal('Success', 'Product added to cart!', 'success');
+                updateAllBadges();
+            }
+        }
+
+        // Mark active navigation
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        document.querySelectorAll('nav ul li a').forEach(link => {
+            const linkPage = link.getAttribute('href');
+            if (linkPage === currentPage || (currentPage === '' && linkPage === 'index.html')) {
+                link.classList.add('active');
+            }
+        });
+
+        loadWishlist();
+        updateAllBadges();
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - ROVI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .cart-section {
+            padding: 80px 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .cart-item {
+            display: grid;
+            grid-template-columns: 150px 1fr auto auto auto;
+            gap: 20px;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .cart-item-image {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .cart-summary {
+            margin-top: 40px;
+            padding: 30px;
+            background: var(--bg-light);
+            border-radius: 10px;
+        }
+        .cart-summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .cart-summary-total {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            border-top: 2px solid var(--border-color);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        .empty-cart {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        .empty-cart h2 {
+            font-family: var(--font-serif);
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">ROVI</a>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="products.html">Products</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="wishlist.html" class="wishlist-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); font-size: 24px; position: relative;" title="Wishlist">
+                <i class="bi bi-heart"></i>
+                <span class="wishlist-badge" style="display: none;">0</span>
+            </a>
+            <a href="order.html" class="order-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); font-size: 24px; position: relative;" title="My Orders">
+                <i class="bi bi-box-seam"></i>
+                <span class="order-badge" style="display: none;">0</span>
+            </a>
+            <a href="cart.html" class="cart-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); position: relative;">
+                <i class="bi bi-cart3" style="font-size: 24px;"></i>
+                <span class="cart-badge" style="display: none;">0</span>
+            </a>
+            <div class="profile-container">
+                <span class="username-display" id="username-display" style="display: none;"></span>
+                <i class="bi bi-person-circle profile-icon" id="profile-icon" onclick="toggleProfileDropdown()" style="display: none;"></i>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="profile.html"><i class="bi bi-person"></i> Profile</a>
+                    <a href="settings.html"><i class="bi bi-gear"></i> Settings</a>
+                    <a href="#" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="cart-section">
+        <h2 class="section-title">Shopping Cart</h2>
+        <div id="cart-items">
+            <!-- Cart items will be loaded here -->
+        </div>
+        <div id="cart-summary" class="cart-summary hidden">
+            <div class="cart-summary-row">
+                <span>Subtotal:</span>
+                <span id="subtotal">$0.00</span>
+            </div>
+            <div class="cart-summary-row">
+                <span>Shipping:</span>
+                <span>$10.00</span>
+            </div>
+            <div class="cart-summary-row cart-summary-total">
+                <span>Total:</span>
+                <span id="total">$0.00</span>
+            </div>
+            <div style="margin-top: 30px;">
+                <a href="checkout.html" class="btn-primary" style="display: block; text-align: center;">Proceed to Checkout</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>ROVI</h3>
+                <p>Discover and find your own fashion. We bring you the finest collections from top designers around the world.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Customer Service</h3>
+                <ul>
+                    <li><a href="#">Shipping Info</a></li>
+                    <li><a href="returns.html">Returns</a></li>
+                    <li><a href="size-guide.html">Size Guide</a></li>
+                    <li><a href="faq.html">FAQs</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Connect</h3>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/nicolayyyy7?mibextid=wwXIfr&rdid=n6lrNaAcNKG6m61O&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F17SYWDGV7U%2F%3Fmibextid%3DwwXIfr#" target="_blank" class="social-icon" title="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="https://www.instagram.com/mapinogosnicole?igsh=aTNhcWoxcXA3Mzhu&utm_source=qr" target="_blank" class="social-icon" title="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="https://x.com" target="_blank" class="social-icon" title="Twitter"><i class="bi bi-twitter"></i></a>
+                    <a href="https://linkedin.com" target="_blank" class="social-icon" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 ROVI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/profile.js"></script>
+    <script>
+        // Load user profile
+        loadUserProfile();
+        function loadCart() {
+            const cart = getCart();
+            const cartItems = document.getElementById('cart-items');
+            const cartSummary = document.getElementById('cart-summary');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="empty-cart">
+                        <h2>Your cart is empty</h2>
+                        <p>Start shopping to add items to your cart.</p>
+                        <a href="products.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">Browse Products</a>
+                    </div>
+                `;
+                cartSummary.classList.add('hidden');
+            } else {
+                cartItems.innerHTML = cart.map((item, index) => {
+                    const imageSrc = item.product.image || '../photos/hero.jpg';
+                    return `
+                    <div class="cart-item">
+                        <img src="${imageSrc}" alt="${item.product.name}" class="cart-item-image" onerror="this.src='../photos/hero.jpg'">
+                        <div>
+                            <h3>${item.product.name}</h3>
+                            <p>$${item.product.price.toFixed(2)}</p>
+                            ${item.size ? `<p style="color: var(--text-light); font-size: 14px;">Size: ${item.size}</p>` : ''}
+                        </div>
+                        <div>
+                            <input type="number" value="${item.quantity}" min="1" 
+                                   onchange="updateQuantity(${index}, this.value)" 
+                                   style="width: 60px; padding: 8px; text-align: center;">
+                        </div>
+                        <div>
+                            <strong>$${(item.product.price * item.quantity).toFixed(2)}</strong>
+                        </div>
+                        <div>
+                            <button class="btn-danger" onclick="removeItem(${index})">Remove</button>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+
+                const subtotal = getCartTotal();
+                const total = subtotal + 10;
+                
+                document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+                document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+                cartSummary.classList.remove('hidden');
+            }
+        }
+
+        function updateQuantity(index, quantity) {
+            const cart = getCart();
+            if (cart[index]) {
+                cart[index].quantity = parseInt(quantity);
+                if (cart[index].quantity <= 0) {
+                    cart.splice(index, 1);
+                }
+                saveCart(cart);
+                loadCart();
+                updateAllBadges();
+            }
+        }
+
+        function removeItem(index) {
+            if (confirm('Remove this item from cart?')) {
+                const cart = getCart();
+                cart.splice(index, 1);
+                saveCart(cart);
+                loadCart();
+                updateAllBadges();
+            }
+        }
+
+        // Mark active navigation
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        document.querySelectorAll('nav ul li a').forEach(link => {
+            const linkPage = link.getAttribute('href');
+            if (linkPage === currentPage || (currentPage === '' && linkPage === 'index.html')) {
+                link.classList.add('active');
+            }
+        });
+
+        loadCart();
+        updateAllBadges();
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - ROVI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            margin-bottom: 60px;
+        }
+        .contact-banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.4);
+        }
+        .contact-banner-title {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-family: var(--font-serif);
+            font-size: 48px;
+            text-align: center;
+            z-index: 10;
+        }
+        .contact-section {
+            padding: 80px 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        .contact-info {
+            background: var(--bg-light);
+            padding: 40px;
+            border-radius: 10px;
+        }
+        .contact-info h3 {
+            font-family: var(--font-serif);
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+        .contact-item {
+            margin-bottom: 25px;
+            display: flex;
+            align-items: start;
+            gap: 15px;
+        }
+        .contact-item-icon {
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 50%;
+            color: var(--primary-color);
+        }
+        .contact-item-content h4 {
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        .contact-item-content p {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        .contact-form {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .social-contact {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .social-contact a {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+        .social-contact a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">ROVI</a>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="products.html">Products</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="wishlist.html" class="wishlist-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); font-size: 24px; position: relative;" title="Wishlist">
+                <i class="bi bi-heart"></i>
+                <span class="wishlist-badge" style="display: none;">0</span>
+            </a>
+            <a href="order.html" class="order-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); font-size: 24px; position: relative;" title="My Orders">
+                <i class="bi bi-box-seam"></i>
+                <span class="order-badge" style="display: none;">0</span>
+            </a>
+            <a href="cart.html" class="cart-icon" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-dark); position: relative;">
+                <i class="bi bi-cart3" style="font-size: 24px;"></i>
+                <span class="cart-badge" style="display: none;">0</span>
+            </a>
+            <div class="profile-container">
+                <span class="username-display" id="username-display" style="display: none;"></span>
+                <i class="bi bi-person-circle profile-icon" id="profile-icon" onclick="toggleProfileDropdown()" style="display: none;"></i>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="profile.html"><i class="bi bi-person"></i> Profile</a>
+                    <a href="settings.html"><i class="bi bi-gear"></i> Settings</a>
+                    <a href="#" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="contact-banner">
+        <img src="../photos/contact-us.jpg" alt="Contact Us">
+        <h1 class="contact-banner-title">Contact Us</h1>
+    </div>
+
+    <section class="contact-section">
+        <div class="contact-grid">
+            <div class="contact-info">
+                <h3>Get in Touch</h3>
+                <div class="contact-item">
+                    <div class="contact-item-icon"><i class="bi bi-envelope"></i></div>
+                    <div class="contact-item-content">
+                        <h4>Email</h4>
+                        <p>info@rovi.com<br>support@rovi.com</p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-item-icon"><i class="bi bi-telephone"></i></div>
+                    <div class="contact-item-content">
+                        <h4>Phone</h4>
+                        <p>+1 (555) 123-4567<br>+1 (555) 123-4568</p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-item-icon"><i class="bi bi-geo-alt"></i></div>
+                    <div class="contact-item-content">
+                        <h4>Address</h4>
+                        <p>123 Fashion Street<br>New York, NY 10001<br>United States</p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-item-icon"><i class="bi bi-globe"></i></div>
+                    <div class="contact-item-content">
+                        <h4>Social Platforms</h4>
+                        <div class="social-contact">
+                            <a href="https://www.facebook.com/nicolayyyy7?mibextid=wwXIfr&rdid=n6lrNaAcNKG6m61O&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F17SYWDGV7U%2F%3Fmibextid%3DwwXIfr#" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
+                            <a href="https://www.instagram.com/mapinogosnicole?igsh=aTNhcWoxcXA3Mzhu&utm_source=qr" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
+                            <a href="https://x.com" target="_blank" title="Twitter"><i class="bi bi-twitter"></i></a>
+                            <a href="https://linkedin.com" target="_blank" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="contact-form">
+                <h3 style="margin-bottom: 30px; font-family: var(--font-serif);">Send us a Message</h3>
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" name="subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea name="message" rows="6" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>ROVI</h3>
+                <p>Discover and find your own fashion. We bring you the finest collections from top designers around the world.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Customer Service</h3>
+                <ul>
+                    <li><a href="cart.html">Shipping Info</a></li>
+                    <li><a href="returns.html">Returns</a></li>
+                    <li><a href="size-guide.html">Size Guide</a></li>
+                    <li><a href="faq.html">FAQs</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Connect</h3>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/nicolayyyy7?mibextid=wwXIfr&rdid=n6lrNaAcNKG6m61O&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F17SYWDGV7U%2F%3Fmibextid%3DwwXIfr#" target="_blank" class="social-icon" title="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="https://www.instagram.com/mapinogosnicole?igsh=aTNhcWoxcXA3Mzhu&utm_source=qr" target="_blank" class="social-icon" title="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="https://x.com" target="_blank" class="social-icon" title="Twitter"><i class="bi bi-twitter"></i></a>
+                    <a href="https://linkedin.com" target="_blank" class="social-icon" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 ROVI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/profile.js"></script>
+    <script>
+        // Load user profile
+        loadUserProfile();
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showModal('Thank You', 'Thank you for your message! We will get back to you soon.', 'success');
+            this.reset();
+        });
+
+        // Mark active navigation
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        document.querySelectorAll('nav ul li a').forEach(link => {
+            const linkPage = link.getAttribute('href');
+            if (linkPage === currentPage || (currentPage === '' && linkPage === 'index.html')) {
+                link.classList.add('active');
+            }
+        });
+
+        updateAllBadges();
+    </script>
+</body>
+</html>
+

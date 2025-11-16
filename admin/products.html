@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Products - ROVI Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .admin-content {
+            padding: 30px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 50px auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .product-image-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--bg-light);
+            margin-top: 10px;
+        }
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(139, 69, 19, 0.05);
+        }
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(139, 69, 19, 0.1);
+        }
+        .upload-area input[type="file"] {
+            display: none;
+        }
+        .upload-icon {
+            font-size: 48px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+        .upload-text {
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+        .upload-hint {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        .image-preview-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .image-preview-large {
+            max-width: 200px;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            padding: 5px;
+        }
+        .remove-image-btn {
+            margin-top: 10px;
+            padding: 5px 15px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>ROVI Admin Panel</h1>
+        <nav class="admin-nav">
+            <a href="index.html">Dashboard</a>
+            <a href="products.html" class="active">Products</a>
+            <a href="orders.html" style="position: relative;">
+                Orders
+                <span class="order-badge" style="display: none; position: absolute; top: -5px; right: -10px;">0</span>
+            </a>
+            <a href="content.html">Content</a>
+            <a href="../user/index.html" target="_blank">View Site</a>
+            <div class="profile-container" style="margin-left: auto;">
+                <span class="username-display" id="username-display" style="display: none; color: white;"></span>
+                <i class="bi bi-person-circle profile-icon" id="profile-icon" onclick="toggleProfileDropdown()" style="display: none; color: white; font-size: 24px;"></i>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="#" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class="admin-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2 style="font-family: var(--font-serif); font-size: 32px;">Manage Products</h2>
+            <button class="btn-primary" onclick="openAddModal()">Add New Product</button>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="products-table">
+                <!-- Products will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Product</h3>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" id="product-price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="product-category" required>
+                        <option value="Dresses">Dresses</option>
+                        <option value="Jackets">Jackets</option>
+                        <option value="Tops">Tops</option>
+                        <option value="Pants">Pants</option>
+                        <option value="Accessories">Accessories</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="product-description" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Product Image</label>
+                    <div class="upload-area" id="product-upload-area" onclick="document.getElementById('product-image-input').click()">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">Click to upload or drag and drop</div>
+                        <div class="upload-hint">PNG, JPG, GIF up to 10MB</div>
+                        <input type="file" id="product-image-input" accept="image/*" onchange="handleProductImageUpload(event)">
+                    </div>
+                    <div class="image-preview-container" id="product-image-preview-container" style="display: none;">
+                        <img id="image-preview" class="image-preview-large">
+                        <br>
+                        <button type="button" class="remove-image-btn" onclick="removeProductImage()">Remove Image</button>
+                    </div>
+                    <input type="hidden" id="product-image" required>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="product-instock" checked> In Stock
+                    </label>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-primary">Save Product</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/profile.js"></script>
+    <script>
+        // Check authentication - must be admin
+        if (!isAuthenticated()) {
+            window.location.href = '../user/login.html';
+        } else {
+            const user = getCurrentUser();
+            if (user.username.toLowerCase() !== 'admin') {
+                window.location.href = '../user/index.html';
+            }
+        }
+
+        // Load user profile
+        loadUserProfile();
+        let editingProductId = null;
+
+        function loadProducts() {
+            const products = getProducts();
+            const tableBody = document.getElementById('products-table');
+
+            if (products.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No products found. Add your first product!</td></tr>';
+            } else {
+                tableBody.innerHTML = products.map(product => `
+                    <tr>
+                        <td>${product.id}</td>
+                        <td><img src="${product.image}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
+                        <td>${product.name}</td>
+                        <td>${product.category}</td>
+                        <td>$${product.price.toFixed(2)}</td>
+                        <td>${product.inStock ? 'In Stock' : 'Out of Stock'}</td>
+                        <td>
+                            <button class="btn-secondary" onclick="editProduct(${product.id})" style="padding: 5px 15px; margin-right: 5px;">Edit</button>
+                            <button class="btn-danger" onclick="deleteProductHandler(${product.id})" style="padding: 5px 15px;">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        let currentProductImage = null;
+
+        function openAddModal() {
+            editingProductId = null;
+            currentProductImage = null;
+            document.getElementById('modal-title').textContent = 'Add New Product';
+            document.getElementById('product-form').reset();
+            document.getElementById('product-id').value = '';
+            document.getElementById('product-image').value = '';
+            document.getElementById('product-image-preview-container').style.display = 'none';
+            document.getElementById('product-modal').style.display = 'block';
+        }
+
+        function editProduct(id) {
+            const product = getProductById(id);
+            if (product) {
+                editingProductId = id;
+                currentProductImage = product.image;
+                document.getElementById('modal-title').textContent = 'Edit Product';
+                document.getElementById('product-id').value = product.id;
+                document.getElementById('product-name').value = product.name;
+                document.getElementById('product-price').value = product.price;
+                document.getElementById('product-category').value = product.category;
+                document.getElementById('product-description').value = product.description || '';
+                document.getElementById('product-image').value = product.image;
+                document.getElementById('product-instock').checked = product.inStock;
+                updateImagePreview(product.image);
+                document.getElementById('product-modal').style.display = 'block';
+            }
+        }
+
+        function deleteProductHandler(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                deleteProduct(id);
+                loadProducts();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('product-modal').style.display = 'none';
+        }
+
+        function updateImagePreview(url) {
+            const preview = document.getElementById('image-preview');
+            const container = document.getElementById('product-image-preview-container');
+            if (url) {
+                preview.src = url;
+                container.style.display = 'block';
+                currentProductImage = url;
+            } else {
+                container.style.display = 'none';
+                currentProductImage = null;
+            }
+        }
+
+        function handleProductImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showModal('Error', 'File size must be less than 10MB', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    document.getElementById('product-image').value = base64Image;
+                    updateImagePreview(base64Image);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeProductImage() {
+            document.getElementById('product-image').value = '';
+            document.getElementById('product-image-input').value = '';
+            document.getElementById('product-image-preview-container').style.display = 'none';
+            currentProductImage = null;
+        }
+
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('product-upload-area');
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showModal('Error', 'File size must be less than 10MB', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    document.getElementById('product-image').value = base64Image;
+                    updateImagePreview(base64Image);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showModal('Error', 'Please drop an image file', 'error');
+            }
+        });
+
+        document.getElementById('product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const imageValue = document.getElementById('product-image').value;
+            if (!imageValue) {
+                showModal('Error', 'Please upload a product image', 'error');
+                return;
+            }
+
+            const productData = {
+                name: document.getElementById('product-name').value,
+                price: parseFloat(document.getElementById('product-price').value),
+                category: document.getElementById('product-category').value,
+                description: document.getElementById('product-description').value,
+                image: imageValue,
+                inStock: document.getElementById('product-instock').checked
+            };
+
+            if (editingProductId) {
+                updateProduct(editingProductId, productData);
+            } else {
+                addProduct(productData);
+            }
+
+            closeModal();
+            loadProducts();
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('product-modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Mark active navigation (already handled by class="active" in HTML)
+        
+        loadProducts();
+        if (typeof updateAllBadges === 'function') {
+            updateAllBadges();
+        }
+    </script>
+</body>
+</html>
+

@@ -40,22 +40,6 @@
             background: #DC3545;
             color: #fff;
         }
-        .order-details {
-            margin-top: 10px;
-            padding: 15px;
-            background: var(--bg-light);
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        .order-items {
-            margin-top: 10px;
-        }
-        .order-item-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
     </style>
 </head>
 <body>
@@ -84,7 +68,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h2 style="font-family: var(--font-serif); font-size: 32px; margin: 0;">Manage Orders</h2>
             <button class="btn-secondary" onclick="loadOrders()" style="padding: 10px 20px;">
-                <i class="bi bi-arrow-clockwise"></i> Load All Orders
+                <i class="bi bi-arrow-clockwise"></i> Refresh Orders
             </button>
         </div>
 
@@ -101,7 +85,7 @@
                 </tr>
             </thead>
             <tbody id="orders-table">
-                <!-- Orders will be loaded here -->
+                <tr><td colspan="7" style="text-align: center; padding: 40px;">Loading orders...</td></tr>
             </tbody>
         </table>
     </div>
@@ -114,7 +98,7 @@
             window.location.href = '../user/login.html';
         } else {
             const user = getCurrentUser();
-            if (user.username.toLowerCase() !== 'admin') {
+            if (user && user.username && user.username.toLowerCase() !== 'admin') {
                 window.location.href = '../user/index.html';
             }
         }
@@ -122,71 +106,88 @@
         // Load user profile
         loadUserProfile();
 
-        // Wait for data.js to be fully loaded
+        // Load all orders from data.js
         function loadOrders() {
-            const tableBody = document.getElementById('orders-table');
-            
-            // Check if getOrders function exists
-            if (typeof getOrders !== 'function') {
-                console.error('getOrders function not found. data.js may not be loaded.');
-                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: red;">Error: Data functions not loaded. Please refresh the page.</td></tr>';
-                return;
+            try {
+                const tableBody = document.getElementById('orders-table');
+                
+                if (!tableBody) {
+                    console.error('Orders table body not found');
+                    return;
+                }
+
+                // Wait for data.js to be available
+                if (typeof getOrders !== 'function') {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: red;">Error: Data functions not loaded. Please refresh the page.</td></tr>';
+                    setTimeout(loadOrders, 500);
+                    return;
+                }
+
+                const orders = getOrders();
+                console.log('Orders loaded:', orders);
+
+                if (!orders || orders.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No orders found.</td></tr>';
+                } else {
+                    // Sort orders by date (newest first)
+                    const sortedOrders = [...orders].sort((a, b) => {
+                        const dateA = new Date(a.date || 0);
+                        const dateB = new Date(b.date || 0);
+                        return dateB - dateA;
+                    });
+
+                    tableBody.innerHTML = sortedOrders.map(order => {
+                        const date = order.date ? new Date(order.date) : new Date();
+                        const formattedDate = date.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                        const itemCount = order.items ? order.items.length : 0;
+                        const statusClass = `status-${order.status || 'pending'}`;
+
+                        return `
+                            <tr>
+                                <td>#${order.id}</td>
+                                <td>
+                                    <strong>${order.customerName || 'N/A'}</strong><br>
+                                    <small style="color: var(--text-light);">${order.email || 'N/A'}</small>
+                                </td>
+                                <td>${formattedDate}</td>
+                                <td>${itemCount} item(s)</td>
+                                <td>$${(order.total || 0).toFixed(2)}</td>
+                                <td>
+                                    <span class="status-badge ${statusClass}">${order.status || 'pending'}</span>
+                                </td>
+                                <td>
+                                    <button class="btn-secondary" onclick="viewOrder(${order.id})" style="padding: 5px 15px; margin-right: 5px;">View</button>
+                                    <select onchange="updateOrderStatus(${order.id}, this.value)" style="padding: 5px;">
+                                        <option value="pending" ${(order.status || 'pending') === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                                        <option value="processed" ${order.status === 'processed' ? 'selected' : ''}>Processed</option>
+                                        <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                const tableBody = document.getElementById('orders-table');
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: red;">Error loading orders. Please refresh the page.</td></tr>';
+                }
             }
-
-            const orders = getOrders();
-            console.log('Orders loaded in admin:', orders); // Debug log
-
-            if (!orders || orders.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No orders found.</td></tr>';
-                return;
-            }
-
-            // Create a copy before sorting to avoid mutating the original
-            const sortedOrders = [...orders].sort((a, b) => {
-                const dateA = new Date(a.date || 0);
-                const dateB = new Date(b.date || 0);
-                return dateB - dateA;
-            });
-
-            tableBody.innerHTML = sortedOrders.map(order => {
-                const date = new Date(order.date);
-                const formattedDate = date.toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                });
-                const itemCount = order.items ? order.items.length : 0;
-                const statusClass = `status-${order.status || 'pending'}`;
-
-                return `
-                    <tr>
-                        <td>#${order.id}</td>
-                        <td>
-                            <strong>${order.customerName || 'N/A'}</strong><br>
-                            <small style="color: var(--text-light);">${order.email || 'N/A'}</small>
-                        </td>
-                        <td>${formattedDate}</td>
-                        <td>${itemCount} item(s)</td>
-                        <td>$${(order.total || 0).toFixed(2)}</td>
-                        <td>
-                            <span class="status-badge ${statusClass}">${order.status || 'pending'}</span>
-                        </td>
-                        <td>
-                            <button class="btn-secondary" onclick="viewOrder(${order.id})" style="padding: 5px 15px; margin-right: 5px;">View</button>
-                            <select onchange="updateOrderStatus(${order.id}, this.value)" style="padding: 5px;">
-                                <option value="pending" ${(order.status || 'pending') === 'pending' ? 'selected' : ''}>Pending</option>
-                                <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
-                                <option value="processed" ${order.status === 'processed' ? 'selected' : ''}>Processed</option>
-                                <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
-                                <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                            </select>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
         }
 
         function viewOrder(orderId) {
+            if (typeof getOrders !== 'function') {
+                showModal('Error', 'Data functions not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
             const orders = getOrders();
             const order = orders.find(o => o.id === parseInt(orderId) || o.id === orderId);
             
@@ -195,28 +196,32 @@
                 return;
             }
 
-            const itemsList = order.items.map(item => 
-                `${item.product.name} x${item.quantity}${item.size ? ` (Size: ${item.size})` : ''} - $${(item.product.price * item.quantity).toFixed(2)}`
-            ).join('\n');
+            const itemsList = order.items ? order.items.map(item => {
+                const productName = item.product ? item.product.name : 'Unknown Product';
+                const quantity = item.quantity || 1;
+                const size = item.size ? ` (Size: ${item.size})` : '';
+                const price = item.product ? (item.product.price * quantity).toFixed(2) : '0.00';
+                return `${productName} x${quantity}${size} - $${price}`;
+            }).join('\n') : 'No items';
 
             const orderDetails = `
 Order ID: #${order.id}
-Customer: ${order.customerName}
-Email: ${order.email}
-Phone: ${order.phone}
-Address: ${order.address}
-City: ${order.city}, ${order.zip}
-Payment: ${order.paymentMethod}
-Status: ${order.status}
-Date: ${new Date(order.date).toLocaleString()}
+Customer: ${order.customerName || 'N/A'}
+Email: ${order.email || 'N/A'}
+Phone: ${order.phone || 'N/A'}
+Address: ${order.address || 'N/A'}
+City: ${order.city || 'N/A'}, ${order.zip || 'N/A'}
+Payment: ${order.paymentMethod || 'N/A'}
+Status: ${order.status || 'pending'}
+Date: ${order.date ? new Date(order.date).toLocaleString() : 'N/A'}
 
 Items:
 ${itemsList}
 
-Total: $${order.total.toFixed(2)}
+Total: $${(order.total || 0).toFixed(2)}
             `;
 
-                showModal('Order Details', orderDetails.replace(/\n/g, '<br>'), 'info');
+            showModal('Order Details', orderDetails.replace(/\n/g, '<br>'), 'info');
         }
 
         function updateOrderStatus(orderId, status) {
@@ -224,6 +229,11 @@ Total: $${order.total.toFixed(2)}
         }
 
         function updateOrderStatusConfirm(orderId, status) {
+            if (typeof updateOrderStatusById !== 'function') {
+                showModal('Error', 'Data functions not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
             const order = updateOrderStatusById(orderId, status);
             if (order) {
                 // If order is no longer pending, remove from viewed orders
@@ -245,17 +255,21 @@ Total: $${order.total.toFixed(2)}
             }
         }
 
-        // Load orders when page is ready
+        // Initialize on page load
         window.addEventListener('load', function() {
-            // Small delay to ensure data.js is fully initialized
-            setTimeout(function() {
-                loadOrders();
+            setTimeout(loadOrders, 100);
+            if (typeof markOrdersAsViewed === 'function') {
                 markOrdersAsViewed();
-                if (typeof updateAllBadges === 'function') {
-                    updateAllBadges();
-                }
-            }, 100);
+            }
+            if (typeof updateAllBadges === 'function') {
+                updateAllBadges();
+            }
         });
+
+        // Also try immediately if page is already loaded
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(loadOrders, 200);
+        }
 
         // Listen for storage changes (when orders are added from other tabs/pages)
         window.addEventListener('storage', function(e) {
@@ -279,4 +293,3 @@ Total: $${order.total.toFixed(2)}
     </script>
 </body>
 </html>
-

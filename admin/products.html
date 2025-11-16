@@ -13,11 +13,6 @@
         .admin-content {
             padding: 30px;
         }
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
         .modal {
             display: none;
             position: fixed;
@@ -49,13 +44,6 @@
             font-size: 24px;
             cursor: pointer;
         }
-        .product-image-preview {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
         .upload-area {
             border: 2px dashed var(--border-color);
             border-radius: 10px;
@@ -76,19 +64,6 @@
         }
         .upload-area input[type="file"] {
             display: none;
-        }
-        .upload-icon {
-            font-size: 48px;
-            color: var(--text-light);
-            margin-bottom: 10px;
-        }
-        .upload-text {
-            color: var(--text-light);
-            margin-bottom: 5px;
-        }
-        .upload-hint {
-            font-size: 12px;
-            color: var(--text-light);
         }
         .image-preview-container {
             margin-top: 15px;
@@ -154,7 +129,7 @@
                 </tr>
             </thead>
             <tbody id="products-table">
-                <!-- Products will be loaded here -->
+                <tr><td colspan="7" style="text-align: center; padding: 40px;">Loading products...</td></tr>
             </tbody>
         </table>
     </div>
@@ -164,7 +139,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-title">Add New Product</h3>
-                <button class="close-modal" onclick="closeModal()">&times;</button>
+                <button class="close-modal" onclick="closeProductModal()">&times;</button>
             </div>
             <form id="product-form">
                 <input type="hidden" id="product-id">
@@ -193,9 +168,9 @@
                 <div class="form-group">
                     <label>Product Image</label>
                     <div class="upload-area" id="product-upload-area" onclick="document.getElementById('product-image-input').click()">
-                        <div class="upload-icon">📷</div>
-                        <div class="upload-text">Click to upload or drag and drop</div>
-                        <div class="upload-hint">PNG, JPG, GIF up to 10MB</div>
+                        <div style="font-size: 48px; color: var(--text-light); margin-bottom: 10px;">📷</div>
+                        <div style="color: var(--text-light); margin-bottom: 5px;">Click to upload or drag and drop</div>
+                        <div style="font-size: 12px; color: var(--text-light);">PNG, JPG, GIF up to 10MB</div>
                         <input type="file" id="product-image-input" accept="image/*" onchange="handleProductImageUpload(event)">
                     </div>
                     <div class="image-preview-container" id="product-image-preview-container" style="display: none;">
@@ -212,7 +187,7 @@
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
                     <button type="submit" class="btn-primary">Save Product</button>
-                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="button" class="btn-secondary" onclick="closeProductModal()">Cancel</button>
                 </div>
             </form>
         </div>
@@ -226,40 +201,66 @@
             window.location.href = '../user/login.html';
         } else {
             const user = getCurrentUser();
-            if (user.username.toLowerCase() !== 'admin') {
+            if (user && user.username && user.username.toLowerCase() !== 'admin') {
                 window.location.href = '../user/index.html';
             }
         }
 
         // Load user profile
         loadUserProfile();
+
         let editingProductId = null;
+        let currentProductImage = null;
 
+        // Load all products from data.js
         function loadProducts() {
-            const products = getProducts();
-            const tableBody = document.getElementById('products-table');
+            try {
+                const tableBody = document.getElementById('products-table');
+                
+                if (!tableBody) {
+                    console.error('Products table body not found');
+                    return;
+                }
 
-            if (products.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No products found. Add your first product!</td></tr>';
-            } else {
-                tableBody.innerHTML = products.map(product => `
-                    <tr>
-                        <td>${product.id}</td>
-                        <td><img src="${product.image}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
-                        <td>${product.name}</td>
-                        <td>${product.category}</td>
-                        <td>$${product.price.toFixed(2)}</td>
-                        <td>${product.inStock ? 'In Stock' : 'Out of Stock'}</td>
-                        <td>
-                            <button class="btn-secondary" onclick="editProduct(${product.id})" style="padding: 5px 15px; margin-right: 5px;">Edit</button>
-                            <button class="btn-danger" onclick="deleteProductHandler(${product.id})" style="padding: 5px 15px;">Delete</button>
-                        </td>
-                    </tr>
-                `).join('');
+                // Wait for data.js to be available
+                if (typeof getProducts !== 'function') {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: red;">Error: Data functions not loaded. Please refresh the page.</td></tr>';
+                    setTimeout(loadProducts, 500);
+                    return;
+                }
+
+                const products = getProducts();
+                console.log('Products loaded:', products);
+
+                if (!products || products.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No products found. Add your first product!</td></tr>';
+                } else {
+                    tableBody.innerHTML = products.map(product => {
+                        const imageSrc = product.image || '../photos/hero.jpg';
+                        return `
+                            <tr>
+                                <td>${product.id}</td>
+                                <td><img src="${imageSrc}" alt="${product.name || 'Product'}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" onerror="this.src='../photos/hero.jpg'"></td>
+                                <td>${product.name || 'Unnamed Product'}</td>
+                                <td>${product.category || 'Uncategorized'}</td>
+                                <td>$${(product.price || 0).toFixed(2)}</td>
+                                <td>${product.inStock !== false ? 'In Stock' : 'Out of Stock'}</td>
+                                <td>
+                                    <button class="btn-secondary" onclick="editProduct(${product.id})" style="padding: 5px 15px; margin-right: 5px;">Edit</button>
+                                    <button class="btn-danger" onclick="deleteProductHandler(${product.id})" style="padding: 5px 15px;">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+                const tableBody = document.getElementById('products-table');
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: red;">Error loading products. Please refresh the page.</td></tr>';
+                }
             }
         }
-
-        let currentProductImage = null;
 
         function openAddModal() {
             editingProductId = null;
@@ -273,18 +274,22 @@
         }
 
         function editProduct(id) {
+            if (typeof getProductById !== 'function') {
+                showModal('Error', 'Data functions not loaded. Please refresh the page.', 'error');
+                return;
+            }
             const product = getProductById(id);
             if (product) {
                 editingProductId = id;
                 currentProductImage = product.image;
                 document.getElementById('modal-title').textContent = 'Edit Product';
                 document.getElementById('product-id').value = product.id;
-                document.getElementById('product-name').value = product.name;
-                document.getElementById('product-price').value = product.price;
-                document.getElementById('product-category').value = product.category;
+                document.getElementById('product-name').value = product.name || '';
+                document.getElementById('product-price').value = product.price || 0;
+                document.getElementById('product-category').value = product.category || 'Dresses';
                 document.getElementById('product-description').value = product.description || '';
-                document.getElementById('product-image').value = product.image;
-                document.getElementById('product-instock').checked = product.inStock;
+                document.getElementById('product-image').value = product.image || '';
+                document.getElementById('product-instock').checked = product.inStock !== false;
                 updateImagePreview(product.image);
                 document.getElementById('product-modal').style.display = 'block';
             }
@@ -292,12 +297,19 @@
 
         function deleteProductHandler(id) {
             if (confirm('Are you sure you want to delete this product?')) {
+                if (typeof deleteProduct !== 'function') {
+                    showModal('Error', 'Data functions not loaded. Please refresh the page.', 'error');
+                    return;
+                }
                 deleteProduct(id);
                 loadProducts();
+                if (typeof updateAllBadges === 'function') {
+                    updateAllBadges();
+                }
             }
         }
 
-        function closeModal() {
+        function closeProductModal() {
             document.getElementById('product-modal').style.display = 'none';
         }
 
@@ -340,41 +352,48 @@
 
         // Drag and drop functionality
         const uploadArea = document.getElementById('product-upload-area');
-        
-        uploadArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
+        if (uploadArea) {
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
 
-        uploadArea.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-        });
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
 
-        uploadArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                if (file.size > 10 * 1024 * 1024) {
-                    showModal('Error', 'File size must be less than 10MB', 'error');
-                    return;
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    if (file.size > 10 * 1024 * 1024) {
+                        showModal('Error', 'File size must be less than 10MB', 'error');
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const base64Image = e.target.result;
+                        document.getElementById('product-image').value = base64Image;
+                        updateImagePreview(base64Image);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    showModal('Error', 'Please drop an image file', 'error');
                 }
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64Image = e.target.result;
-                    document.getElementById('product-image').value = base64Image;
-                    updateImagePreview(base64Image);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                showModal('Error', 'Please drop an image file', 'error');
-            }
-        });
+            });
+        }
 
+        // Form submission
         document.getElementById('product-form').addEventListener('submit', function(e) {
             e.preventDefault();
+
+            if (typeof addProduct === 'undefined' || typeof updateProduct === 'undefined') {
+                showModal('Error', 'Data functions not loaded. Please refresh the page.', 'error');
+                return;
+            }
 
             const imageValue = document.getElementById('product-image').value;
             if (!imageValue) {
@@ -397,23 +416,32 @@
                 addProduct(productData);
             }
 
-            closeModal();
+            closeProductModal();
             loadProducts();
+            if (typeof updateAllBadges === 'function') {
+                updateAllBadges();
+            }
         });
 
         // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('product-modal');
             if (event.target === modal) {
-                closeModal();
+                closeProductModal();
             }
         }
 
-        // Mark active navigation (already handled by class="active" in HTML)
-        
-        loadProducts();
-        if (typeof updateAllBadges === 'function') {
-            updateAllBadges();
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            setTimeout(loadProducts, 100);
+            if (typeof updateAllBadges === 'function') {
+                updateAllBadges();
+            }
+        });
+
+        // Also try immediately if page is already loaded
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(loadProducts, 200);
         }
     </script>
 </body>
